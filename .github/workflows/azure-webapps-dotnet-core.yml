@@ -56,13 +56,13 @@ jobs:
         run: dotnet build ./koi-auction-backend/AuctionService/AuctionService.csproj --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish ./koi-auction-backend/AuctionService/AuctionService.csproj -c Release -o ./publish
-
+        run: dotnet publish ./koi-auction-backend/AuctionService/AuctionService.csproj -c Release -o ./koi-auction-backend/AuctionService/publish
+        
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
         with:
           name: .net-app
-          path: ./publish
+          path: ./koi-auction-backend/AuctionService/publish
 
   deploy:
     permissions:
@@ -85,4 +85,4 @@ jobs:
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ./publish
+          package: ./koi-auction-backend/AuctionService/publish

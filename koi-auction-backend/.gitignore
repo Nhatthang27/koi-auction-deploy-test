@@ -9,3 +9,7 @@ payment-service/
 
 # Ignore user-service folder
 user-service/
+
+AuctionService/publish
+
+publish/
