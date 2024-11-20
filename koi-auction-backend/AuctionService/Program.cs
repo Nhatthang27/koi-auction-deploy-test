@@ -24,7 +24,7 @@ builder.Configuration.AddEnvironmentVariables()
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnectionStringDB");
 var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
-allowedOrigins = allowedOrigins == null ? new string[] { "*" } : allowedOrigins;
+allowedOrigins = allowedOrigins == null ? new string[] { "http://localhost:5173", "http://localhost:3000" } : allowedOrigins;
 
 
 //log allow origin to azure app service
