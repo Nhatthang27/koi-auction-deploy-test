@@ -14,14 +14,17 @@ using AuctionService.Helper;
 using AuctionService.Dto.User;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddHttpClient<WalletService>();
-// Đăng ký các cấu hình từ appsettings.json
-builder.Services.Configure<BiddingServiceOptionDtos>(
-    builder.Configuration.GetSection("BiddingService"));
-builder.Services.AddSingleton<IDictionary<string, UserConnectionDto>>(_ => new Dictionary<string, UserConnectionDto>());
-builder.Services.AddSignalR();
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// // Đăng ký các cấu hình từ appsettings.json
+// builder.Services.Configure<BiddingServiceOptionDtos>(
+//     builder.Configuration.GetSection("BiddingService"));
+
+builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+                     .AddEnvironmentVariables();
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnectionStringDB");
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
+
 builder.Services.AddControllers();
 builder.Services.AddControllers().AddNewtonsoftJson(options =>
 {
@@ -32,7 +35,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AuctionManagementDbContext>(option =>
 {
-    option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectionStringDB"));
+    option.UseSqlServer(connectionString);
 });
 builder.Services.AddScoped<IBidStrategy, FixedPriceBidStrategy>();
 builder.Services.AddScoped<IBidStrategy, SealedBidStrategy>();
@@ -51,6 +54,7 @@ builder.Services.AddScoped<ISoldLotRepository, SoldLotRepository>();
 builder.Services.AddScoped<IAuctionDepositRepository, AuctionDepositRepository>();
 builder.Services.AddScoped<IAuctionDepositService, AuctionDepositService>();
 
+builder.Services.AddHttpClient<WalletService>();
 builder.Services.AddScoped<ISoldLotService, SoldLotService>();
 builder.Services.AddScoped<IBidLogService, BidLogService>();
 builder.Services.AddScoped<BidService>();
@@ -69,24 +73,23 @@ builder.Services.AddScoped<BreederDetailService>();
 
 builder.Services.AddScoped<IAuctionStatusRepository, AuctionStatusRepository>();
 builder.Services.AddScoped<IAuctionLotStatusRepository, AuctionLotStatusRepository>();
-// Đăng ký MemoryCache
+
+builder.Services.AddSingleton<IDictionary<string, UserConnectionDto>>(_ => new Dictionary<string, UserConnectionDto>());
+builder.Services.AddSignalR();
 builder.Services.AddMemoryCache();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigins", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5501", "http://localhost:3002") // Thay th? b?ng URL frontend c?a b?n
+        policy.WithOrigins(allowedOrigins!)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
 
     });
 });
-
-
-
 builder.Services.AddHttpContextAccessor();
-// Thêm HttpClient vào DI
 builder.Services.AddHttpClient();
 
 var app = builder.Build();
@@ -94,9 +97,7 @@ var app = builder.Build();
 app.UseMiddleware<AuthorizationMiddleware>();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors("AllowSpecificOrigins");
-// Configure the HTTP request pipeline.
-// if (app.Environment.IsDevelopment())
-// {
+
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapGet("/", context =>
@@ -104,7 +105,6 @@ app.MapGet("/", context =>
     context.Response.Redirect("/swagger");
     return Task.CompletedTask;
 });
-// }
 
 app.MapHub<BidHub>("/hub");
 app.UseHttpsRedirection();

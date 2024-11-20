@@ -8,11 +8,17 @@ namespace AuctionService.Services
         private readonly HttpClient _httpClient;
         private readonly Dictionary<int, BreederDetailDto> _breederCache;
 
+        private string? _userBaseUrl;
 
-        public BreederDetailService(HttpClient httpClient)
+        private readonly IConfiguration _configuration;
+
+        public BreederDetailService(HttpClient httpClient, IConfiguration configuration)
         {
+            _configuration = configuration;
             _httpClient = httpClient;
+            _httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
             _breederCache = new();
+            _userBaseUrl = _configuration["UserService:BaseUrl"];
         }
 
         // Lấy thông tin breeder theo ID và lưu vào cache nếu chưa có
@@ -24,7 +30,8 @@ namespace AuctionService.Services
             }
 
             // Nếu chưa có trong cache, gọi UserService để lấy thông tin
-            var response = await _httpClient.GetAsync($"http://localhost:3000/user-service/manage/breeder/profile/{breederId}");
+            // var response = await _httpClient.GetAsync($"http://localhost:3000/user-service/manage/breeder/profile/{breederId}");
+            var response = await _httpClient.GetAsync($"{_userBaseUrl}/manage/breeder/profile/{breederId}");
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
@@ -38,7 +45,8 @@ namespace AuctionService.Services
         public async Task<List<BreederDetailDto>> GetAllBreederAsync()
         {
             var breeders = new List<BreederDetailDto>();
-            var response = await _httpClient.GetAsync($"http://localhost:3000/user-service/manage/breeder/profile");
+            var response = await _httpClient.GetAsync($"{_userBaseUrl}/manage/breeder/profile");
+            // var response = await _httpClient.GetAsync($"http://localhost:3000/user-service/manage/breeder/profile");
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();

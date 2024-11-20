@@ -1,0 +1,11 @@
+# Ignore api-gateway folder
+api-gateway/
+
+# Ignore mail-service folder
+mail-service/
+
+# Ignore payment-service folder
+payment-service/
+
+# Ignore user-service folder
+user-service/

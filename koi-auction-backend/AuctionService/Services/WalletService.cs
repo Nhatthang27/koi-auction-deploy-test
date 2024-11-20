@@ -11,11 +11,17 @@ namespace AuctionService.Services
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
+
+        private string? _serviceToken;
+
+        private string? _walletBaseUrl;
         public WalletService(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
             _configuration = configuration;
             _httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+            _serviceToken = _configuration["AuctionService:ServiceToken"];
+            _walletBaseUrl = _configuration["WalletService:BaseUrl"];
         }
 
         // Phương thức lấy token sử dụng username và password từ appsettings
@@ -43,13 +49,14 @@ namespace AuctionService.Services
         {
             WalletDto? wallet = null;
 
-            var token = _configuration["AuctionService:ServiceToken"];
+            // var token = _configuration["AuctionService:ServiceToken"];
 
             // Thêm token vào header
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _serviceToken);
 
             // Gọi PaymentService để lấy thông tin ví
-            var response = await _httpClient.GetAsync($"http://localhost:3004/api/internal/get-wallet-balance/{id}");
+            // var response = await _httpClient.GetAsync($"http://localhost:3004/api/internal/get-wallet-balance/{id}");
+            var response = await _httpClient.GetAsync($"{_walletBaseUrl}/internal/get-wallet-balance/{id}");
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();

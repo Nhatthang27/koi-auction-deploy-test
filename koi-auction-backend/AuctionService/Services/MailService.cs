@@ -16,11 +16,18 @@ namespace AuctionService.Services
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
+
+        private string? _serviceToken;
+
+        private string? _mailBaseUrl;
+
         public MailService(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
             _configuration = configuration;
             _httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+            _serviceToken = _configuration["AuctionService:ServiceToken"];
+            _mailBaseUrl = _configuration["MailService:BaseUrl"];
         }
 
         // Phương thức lấy token sử dụng username và password từ appsettings
@@ -48,13 +55,14 @@ namespace AuctionService.Services
         {
             MailDto? mail = null;
 
-            var token = _configuration["AuctionService:ServiceToken"];
+            // var token = _configuration["AuctionService:ServiceToken"];
 
             // Thêm token vào header
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _serviceToken);
 
             // Gọi MailService để gửi email
-            var response = await _httpClient.PostAsJsonAsync($"http://localhost:3005/api/send-email", mailDto);
+            // var response = await _httpClient.PostAsJsonAsync($"http://localhost:3005/api/send-email", mailDto);
+            var response = await _httpClient.PostAsJsonAsync($"{_mailBaseUrl}/send-email", mailDto);
             return mail!;
         }
     }
