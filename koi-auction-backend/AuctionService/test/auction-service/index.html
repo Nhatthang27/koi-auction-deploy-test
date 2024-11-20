@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SignalR Client Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.5/signalr.min.js"></script>
+  </head>
+
+  <body>
+    <div>
+      <h1>Auction Service</h1>
+      <div class="isAuctionLotOngoing">
+        <input
+          type="number"
+          name="isAuctionLotOngoingInput"
+          id="isAuctionLotOngoingInput"
+        />
+        <button id="isAuctionLotOngoingButton">Test Exist</button>
+        <br />
+        <br />
+        <hr />
+      </div>
+
+      <div class="startAuctionLot">
+        <h3>Submit An Auction Lot</h3>
+        <label for="auctionLotId">Auction Lot Id: </label>
+        <input
+          type="number"
+          id="auctionLotId"
+          placeholder="Enter Auction Lot ID"
+        /><br />
+
+        <label for="auctionLotMethodId">Auction Lot Method Id: </label>
+        <input
+          type="number"
+          id="auctionLotMethodId"
+          placeholder="Enter Auction Lot Method ID"
+        /><br />
+
+        <label for="stepPercent">Step Percent:</label>
+        <input
+          type="number"
+          id="stepPercent"
+          placeholder="Enter Step Percent"
+        />
+        <br />
+
+        <label for="startPrice">Start Price:</label>
+        <input
+          type="number"
+          id="startPrice"
+          placeholder="Enter Start Price"
+        /><br />
+
+        <button id="startAuctionLotButton">Start Auction Lot</button>
+        <br />
+        <br />
+        <hr />
+      </div>
+
+      <div class="endAuctionLot">
+        <button id="endAuctionLotButton">End Auction Lot</button>
+        <br />
+        <br />
+        <hr />
+      </div>
+    </div>
+    <script>
+      // Kết nối đến SignalR Hub
+      const connection = new signalR.HubConnectionBuilder()
+        .withUrl("http://localhost:3003/hub") // Địa chỉ của SignalR Hub
+        .build();
+
+      // Bắt đầu kết nối
+      connection
+        .start()
+        .then(function () {
+          console.log("Auction Service Connected to SignalR hub");
+          document
+            .getElementById("startAuctionLotButton")
+            .addEventListener("click", function () {
+              const auctionLotId = parseInt(
+                document.getElementById("auctionLotId").value,
+                10
+              );
+              const auctionLotMethodId = parseInt(
+                document.getElementById("auctionLotMethodId").value,
+                10
+              );
+              const stepPercent = parseInt(
+                document.getElementById("stepPercent").value,
+                10
+              );
+              const startPrice = parseInt(
+                document.getElementById("startPrice").value,
+                10
+              );
+
+              const auctionLotDto = {
+                auctionLotId: auctionLotId,
+                auctionMethodId: auctionLotMethodId,
+                stepPercent: stepPercent,
+                startPrice: startPrice,
+              };
+
+              // Gọi phương thức SendAuctionLotDto từ phía client
+              connection
+                .invoke("StartAuctionLot", auctionLotDto)
+                .then(() => {
+                  // console.log(
+                  //   `Start Price ${auctionLotDto.startPrice} - StepPercent ${auctionLotDto.stepPercent} - Status ${auctionLotDto.auctionLotStatusId}`
+                  // );
+                })
+                .catch((err) => console.error(err));
+            });
+
+          // Thêm sự kiện click cho button để gọi EndAuctionLot
+          document
+            .getElementById("endAuctionLotButton")
+            .addEventListener("click", function () {
+              connection
+                .invoke("EndAuctionLot")
+                .then(() => {
+                  // console.log("End Auction Lot");
+                })
+                .catch((err) => console.error(err));
+            });
+
+          // Thêm sự kiện click cho button để gọi TestExist
+          document
+            .getElementById("isAuctionLotOngoingButton")
+            .addEventListener("click", function () {
+              const auctionLotId = parseInt(
+                document.getElementById("isAuctionLotOngoingInput").value,
+                10
+              );
+              connection
+                .invoke("IsAuctionLotOngoing", auctionLotId)
+                .then(() => {})
+                .catch((err) => console.error(err));
+            });
+
+          connection.on("ReceiveStartAuctionLot", function (startAuctionLot) {
+            console.log("Receive startAuctionLot", startAuctionLot);
+          });
+
+          connection.on(
+            "ReceiveStartAuctionLotErrorMessage",
+            function (message) {
+              console.log(message);
+            }
+          );
+
+          connection.on(
+            "ReceiveIsAuctionLotOngoingMessage",
+            function (message) {
+              console.log(message);
+            }
+          );
+
+          connection.on("ReceiveEndAuctionLot", function (endAuctionLot) {
+            console.log("Receive endAuctionLot", endAuctionLot);
+          });
+
+          connection.on("ReceiveEndAuctionLotErrorMessage", function (message) {
+            console.log(message);
+          });
+
+          connection.on("ReceiveExceptionMessage", function (message) {
+            console.log(message);
+          });
+        })
+
+        .catch(function (err) {
+          return console.error(err.toString());
+        });
+    </script>
+  </body>
+</html>

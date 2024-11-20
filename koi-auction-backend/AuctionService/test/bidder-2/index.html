@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>SignalR Client Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.5/signalr.min.js"></script>
+</head>
+
+<body>
+    <body>
+        <h1>User 2</h1>
+        <div>
+          <div class="joinAuctionLot">
+            <h3>Join Auction Lot</h3>
+            <label for="auctionLotId">auctionLotId: </label>
+            <input type="text" id="auctionLotId" placeholder="Enter auctionLotId" />
+            <button id="joinAuctionLotButton">Join auction Lot</button>
+            <br />
+            <br />
+            <hr />
+          </div>
+    
+          <div class="placeABid">
+            <h3>Place a bid</h3>
+            <label for="bidInput">Bid amount: </label>
+            <input type="number" id="bidInput" placeholder="Enter bid amount" />
+    
+            <button id="placeBidButton">Place bid</button>
+            <br />
+            <br />
+            <hr />
+          </div>
+        </div>
+        <script>
+          const userId = 2;
+    
+          // Kết nối đến SignalR Hub
+          const connection = new signalR.HubConnectionBuilder()
+            .withUrl("http://localhost:3003/hub") // Địa chỉ của SignalR Hub
+            .build();
+    
+          // Bắt đầu kết nối
+          connection
+            .start()
+            .then(function () {
+              console.log("Bidder 1 is Connected to SignalR hub");
+              // Thêm sự kiện click cho button để gọi JoinauctionLotId
+              document
+                .getElementById("joinAuctionLotButton")
+                .addEventListener("click", function () {
+                  // Lấy dữ liệu từ các input field
+                  const auctionLotId = parseInt(
+                    document.getElementById("auctionLotId").value,
+                    10
+                  );
+                  // Gọi phương thức JoinauctionLotId từ phía client
+                  connection
+                    .invoke("JoinAuctionLot", { userId, auctionLotId })
+                    .then(() => {
+                      // console.log(
+                      //     `Joined auctionLotId ${auctionLotId} as bidder ${userId}`
+                      // );
+                    })
+                    .catch((err) => console.error(err));
+                });
+    
+              document
+                .getElementById("placeBidButton")
+                .addEventListener("click", function () {
+                  const auctionLotId = parseInt(
+                    document.getElementById("auctionLotId").value,
+                    10
+                  );
+                  const bidAmount = parseInt(
+                    document.getElementById("bidInput").value,
+                    10
+                  );
+    
+                  connection
+                    .invoke("PlaceBid", {
+                      bidderId: 2,
+                      auctionLotId: auctionLotId,
+                      bidAmount: bidAmount,
+                    })
+                    .then(() => {
+                      console.log(`In ${auctionLotId}, ${bidAmount}VND`);
+                    })
+                    .catch((err) => console.error(err));
+                });
+    
+              // Lắng nghe sự kiện khi nhận được bid hợp lệ từ server
+              connection.on("ReceivePlaceBid", function (bidMessage) {
+                console.log("Receive bidMessage", bidMessage); // Log the full bidMessage object to check structure
+              });
+    
+              connection.on("ReceiveStartAuctionLot", function (startAuctionLot) {
+                console.log("Receive startAuctionLot", startAuctionLot);
+              });
+    
+              connection.on("ReceiveEndAuctionLot", function (endAuctionLot) {
+                console.log("Receive endAuctionLot", endAuctionLot);
+              });
+    
+              connection.on("ReceivePlaceBidErrorMessage", function (bidMessage) {
+                console.log("error bidMessage", bidMessage); // Log the full bidMessage object to check structure
+              });
+            })
+            .catch(function (err) {
+              return console.error(err.toString());
+            });
+        </script>
+      </body>
+
+</html>
