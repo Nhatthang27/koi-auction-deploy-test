@@ -18,12 +18,13 @@ var builder = WebApplication.CreateBuilder(args);
 // builder.Services.Configure<BiddingServiceOptionDtos>(
 //     builder.Configuration.GetSection("BiddingService"));
 
-builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
-                     .AddEnvironmentVariables();
+builder.Configuration.AddEnvironmentVariables()
+                     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnectionStringDB");
 var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
+allowedOrigins = allowedOrigins == null ? new string[] { "*" } : allowedOrigins;
 
 
 //log allow origin to azure app service
