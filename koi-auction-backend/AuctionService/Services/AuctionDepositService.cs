@@ -74,13 +74,13 @@ namespace AuctionService.Services
                     Text = $"<p>Dear ,</p><p>You have successfully placed a deposit of {auctionDeposit.Amount} for auction lot {auctionDeposit.AuctionLotId}.</p><p>Thank you for your participation.</p><p>Best regards,<br/>Koi Auction SWP391 Team</p>"
                 };
                 await _mailService.SendMailAsync(mailDto);
+                return newAuctionDeposit;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+                return newAuctionDeposit;
             }
-
-            return newAuctionDeposit;
         }
 
         public async Task<List<AuctionDeposit>> UpdateRefundedStatus(int auctionLotId, int exceptUserId)

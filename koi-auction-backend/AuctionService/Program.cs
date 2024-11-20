@@ -24,8 +24,10 @@ builder.Configuration.AddEnvironmentVariables()
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnectionStringDB");
 var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
-allowedOrigins = allowedOrigins == null ? new string[] { "http://localhost:5173", "http://localhost:3000" } : allowedOrigins;
-
+allowedOrigins = allowedOrigins == null ?
+                new string[] { "http://localhost:5173", "http://localhost:3000",
+                                "https://koi-auction-frontend.vercel.app", "https://koi-user-service.vercel.app",
+                                "https://koi-payment-service.vercel.app", "https://koi-api-gateway.vercel.app" } : allowedOrigins;
 
 //log allow origin to azure app service
 
