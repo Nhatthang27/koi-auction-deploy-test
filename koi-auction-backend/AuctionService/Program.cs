@@ -25,6 +25,20 @@ builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnCh
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnectionStringDB");
 var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
 
+
+//log allow origin to azure app service
+
+System.Console.WriteLine("Allowed Origins: ");
+if (allowedOrigins != null)
+{
+    foreach (var origin in allowedOrigins)
+    {
+        System.Console.WriteLine(origin);
+    }
+}
+
+
+
 builder.Services.AddControllers();
 builder.Services.AddControllers().AddNewtonsoftJson(options =>
 {
